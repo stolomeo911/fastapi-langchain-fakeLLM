@@ -5,6 +5,10 @@ from langchain.chains import ConversationChain
 from ...llm.offline_llm import llm
 from langchain.memory import ConversationBufferWindowMemory
 import json
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 router = APIRouter()
 
@@ -16,6 +20,7 @@ memory = ConversationBufferWindowMemory(k=4)
 
 @router.get("/chat")
 async def chat(message: Message) -> ModelResponse:
+    logger.info('Chat request has been requested..')
     try:
         session_id = message.session_id
 
@@ -29,7 +34,7 @@ async def chat(message: Message) -> ModelResponse:
 
         response = conversation.predict(input=message.user_input)
 
-        print(memory.load_memory_variables({}))
+        logger.debug(memory.load_memory_variables({}))
 
         # Parse the response to update the sources
         response_data = json.loads(response)
