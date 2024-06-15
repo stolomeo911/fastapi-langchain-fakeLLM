@@ -1,8 +1,4 @@
 import logging
-import os
-from datetime import datetime
-
-session_id = datetime.today().strftime('%Y%m%d')
 
 
 def setup_logger(name):
@@ -10,10 +6,6 @@ def setup_logger(name):
     logger.setLevel(logging.DEBUG)
 
     if not getattr(logger, 'is_logger_setup', False):
-        # Create subfolder with the session ID
-        session_folder = os.path.join('logs', session_id)
-        if not os.path.exists(session_folder):
-            os.makedirs(session_folder)
 
         # Create console handler and set level to debug
         ch = logging.StreamHandler()

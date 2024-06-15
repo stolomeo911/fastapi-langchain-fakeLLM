@@ -3,40 +3,36 @@ import asyncio
 import aiohttp
 from datetime import datetime
 from helpers.format_response import format_response
+from helpers.persist_session_state import save_session_state, load_session_state
 from utils.logs import setup_logger
+from consts import URL, PERSIST_DIR, SESSION_ID
 
 logger = setup_logger(__name__)
 
-url = 'http://localhost:8000'
+persist_file_path = PERSIST_DIR + f'{SESSION_ID}_session_state.json'
+load_session_state(st.session_state, file_path=persist_file_path)
 
 
-async def retrieve_bot_response(user_input, conversation_history):
+async def retrieve_bot_response(user_input, session_id):
     async with aiohttp.ClientSession() as session:
         payload = {
             "user_input": user_input,
-            "conversation_history": conversation_history
+            "session_id": session_id
         }
 
-        async with session.get(f'{url}/agent/chat', json=payload) as response:
+        async with session.get(f'{URL}/agent/chat', json=payload) as response:
             response = await response.json()
 
-
-        #response = await make_request(session, 'get', f'{url}/agent/chat', json=payload)
-
-        #breakpoint()
         # Process the response
         counter = 0
         with st.empty():
             stream_data = ""
             try:
                 counter += 1
-                #response = json.loads(response)
-
                 if "error" in response:
                     stream_data = response["error"]
 
                 if counter == 1:
-                    #breakpoint()
                     stream_data = format_response(response)
                 st.markdown(stream_data)
             except asyncio.TimeoutError:
@@ -76,7 +72,7 @@ if prompt := st.chat_input("What is up?"):
         st.markdown('**Time:** ' + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
         full_response = asyncio.new_event_loop().run_until_complete(
-            retrieve_bot_response(prompt, conversation_history)
+            retrieve_bot_response(prompt, SESSION_ID)
         )
 
     # Add assistant response to chat history
@@ -84,6 +80,8 @@ if prompt := st.chat_input("What is up?"):
         {"role": "assistant", "content": full_response, "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
 
     logger.debug(f"Assistant response added to chat history: {full_response}")
+
+    save_session_state(st.session_state, file_path=persist_file_path)
 
 
 
