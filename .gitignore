@@ -123,6 +123,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+
 db_docker
 minio
 
@@ -134,3 +135,5 @@ sonarqube/extensions
 sonarqube/data
 sonarqube/logs
 .terraform
+
+*_session_state.json
