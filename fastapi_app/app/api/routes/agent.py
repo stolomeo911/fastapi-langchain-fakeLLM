@@ -1,36 +1,35 @@
-from fastapi import APIRouter, HTTPException, Response
-from fastapi_app.api.models import Message, ModelResponse
+from fastapi import APIRouter, HTTPException
+from ..models import Message, ModelResponse
 from langchain_core.prompts import ChatPromptTemplate
-from fastapi_app.llm.offline_llm import llm
-from langchain.memory import ConversationBufferMemory
+from langchain.chains import ConversationChain
+from ...llm.offline_llm import llm
+from langchain.memory import ConversationBufferWindowMemory
 import json
 
 router = APIRouter()
 
-memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+# Dictionary to store memory objects for each session
+session_memories = {}
 
-
-@router.get("/")
-async def root():
-    return {"message": "Hello World"}
+memory = ConversationBufferWindowMemory(k=4)
 
 
 @router.get("/chat")
 async def chat(message: Message) -> ModelResponse:
     try:
-        # Create the chat prompt template
-        prompt_template = ChatPromptTemplate.from_template("Answer to the user's question: {q}")
+        session_id = message.session_id
 
-        # Retrieve the chat history from the message object
-        chat_history = message.conversation_history
+        # Retrieve or create memory for the session
+        if session_id not in session_memories:
+            session_memories[session_id] = ConversationBufferWindowMemory(k=4)
+        memory = session_memories[session_id]
 
-        # Store the conversation history in memory
-        memory.save_context({"input": chat_history}, {"output": message.user_input})
+        # Generate the model's respons
+        conversation = ConversationChain(llm=llm, verbose=True, memory=memory)
 
-        print(memory.chat_memory)
-        # Generate the model's response
-        chain = prompt_template | llm
-        response = chain.invoke({"q": message.user_input})
+        response = conversation.predict(input=message.user_input)
+
+        print(memory.load_memory_variables({}))
 
         # Parse the response to update the sources
         response_data = json.loads(response)
