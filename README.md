@@ -4,7 +4,7 @@
 
 - Python 3.11
 - Poetry -> pip install poetry
-- Docker (optional, for containerized deployment)
+- Docker (optional, for containerized deployment) [Container have been tested in Window environment, for Mac might be needed some adjustment]
 - Make (to use Makefile commands)
 
 ## Running Application on local machine
