@@ -1,3 +1,7 @@
+# (Fake) LLM ChatBot with FastApi (Backend) and Streamlit (Frontend)
+This project demonstrates how to create a real-time conversational AI by streaming responses from an LLM. It uses FastAPI to create a web server that accepts user inputs and streams generated responses back to the user and streamlit for creating a simple chatbot interface.
+
+
 # Getting Started
 
 ## Prerequisites
